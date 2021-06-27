@@ -8,7 +8,7 @@
         <input type="text" size="50" maxlength="50" v-model="textSearch" style="margin-bottom:1rem;" />
         <div class="container-fluid">
             <div class="row justify-content-center">
-                <div v-for="valute in valutes" :key="valute" class="col-5" style="margin-top:1rem; ">
+                <div v-for="valute in valutesFilter" :key="valute" class="col-5" style="margin-top:1rem; ">
                         <Card style="height:100%"  v-if="valute.check" :Name="valute.Name" :CharCode="valute.CharCode" :Previous="(valute.Previous-valute.Value).toFixed(4)" :Value="valute.Value.toFixed(4)" />
                 </div>
             </div>
@@ -70,14 +70,17 @@
         watch: {
             textSearch: function () {
                 var l_textSearch = this.textSearch.toLowerCase();
-                for (let key in this.valutes) {
-                    if (this.textSearch.length == 0) { this.valutes[key]['check'] = true; }
-                    else {
+                this.valutesFilter = [];
+                if (this.textSearch.length == 0)
+                    this.valutesFilter = this.valutes;
+                else
+                    for (let key in this.valutes) {
                         var st_all = this.valutes[key].CharCode + " " + this.valutes[key].Name;
                         st_all = st_all.toLocaleLowerCase();
-                        this.valutes[key]['check'] = st_all.includes(l_textSearch);
+                        if (st_all.includes(l_textSearch)) {
+                            this.valutesFilter.push(this.valutes[key]);
+                        }                      
                     }
-                }
             },
             selectFrom: function () {
                 this.updateValute();
@@ -95,6 +98,7 @@
                     cbrJsDaily: "https://www.cbr-xml-daily.ru/daily_json.js"
                 },
                 valutes: [],
+                valutesFilter:[],
                 valutesName: [],
                 selectFrom: "",
                 selectTo: "",
@@ -124,7 +128,8 @@
                     .then((response) => {
                         this.valutes = response.data.Valute;
                         for (let key in this.valutes) { this.valutes[key].check = true; }
-                        this.valutesName = Object.keys(response.data.Valute);
+                        this.valutesFilter = this.valutes;
+                        this.valutesName = Object.keys(response.data.Valute).sort();
                     })
                     .catch((error) => {
                         // handle error
